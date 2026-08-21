@@ -1,20 +1,22 @@
-import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom';
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import Hero from './Hero.jsx'
-import './App.css'
-import LoginPage from './login.jsx';
-import RegisterPage from './Register.jsx'
+import './App.css';
+import Navbar from './components/Navbar.jsx';
+import Home from './pages/HomePage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
 
 function App() {
   return (
-    <Routes>
-      <Route path= "/" element={<Hero />} />
-      <Route path= "/login" element={<LoginPage />} />
-      <Route path= "/Register" element={<RegisterPage />} />
-    </Routes>
+    <div className="app-container">
+      <Navbar />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 
