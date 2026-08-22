@@ -6,10 +6,39 @@ function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-    const handlesubmit = (e) => {
+    const handlesubmit = async (e) => {
         e.preventDefault();
-        console.log("Logging in with:", { email, password });
+        setError("");
+        setLoading(true);
+
+        try {
+            const response = await fetch("http://localhost:8000/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Login failed");
+            }
+
+            localStorage.setItem("token", data.access_token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            alert("Login successful!");
+            navigate("/");
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -49,7 +78,7 @@ function LoginPage() {
                                     placeholder="Enter your password"
                                     required
                                 />
-                                <button 
+                                <button
                                     type="button"
                                     className="password-toggle-btn"
                                     onClick={() => setShowPassword(!showPassword)}
@@ -74,7 +103,7 @@ function LoginPage() {
 
                 <footer className="auth-footer">
                     <p>
-                        Don't have an account? 
+                        Don't have an account?
                         <Link to="/register">Create an account</Link>
                     </p>
                 </footer>

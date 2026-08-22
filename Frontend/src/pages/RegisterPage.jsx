@@ -1,16 +1,45 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Auth.css";
 
 function RegisterPage() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [phonenum, setPhonenum] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handlesubmit = (e) => {
+
+    const handlesubmit = async (e) => {
         e.preventDefault();
-        console.log("Registering with:", { email, password, phonenum });
+        setError("");
+        setLoading(true);
+
+        try {
+
+            const response = await fetch("http://localhost:8000/api/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password, phonenum }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Registration faild");
+            }
+
+            alert("Registration successful! Please login.");
+
+            navigate("/login");
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -50,7 +79,7 @@ function RegisterPage() {
                                     placeholder="Create a strong password"
                                     required
                                 />
-                                <button 
+                                <button
                                     type="button"
                                     className="password-toggle-btn"
                                     onClick={() => setShowPassword(!showPassword)}
@@ -69,7 +98,7 @@ function RegisterPage() {
                                     id="phonenum"
                                     value={phonenum}
                                     onChange={(e) => setPhonenum(e.target.value)}
-                                    placeholder="Enter your phone number" 
+                                    placeholder="Enter your phone number"
                                 />
                             </div>
                         </div>
@@ -82,7 +111,7 @@ function RegisterPage() {
 
                 <footer className="auth-footer">
                     <p>
-                        Already have an account? 
+                        Already have an account?
                         <Link to="/login">Login here</Link>
                     </p>
                 </footer>
