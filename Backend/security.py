@@ -1,12 +1,15 @@
-# Backend/security.py
+import os
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Secret key to sign JWT tokens (In production, load this from an .env file)
-SECRET_KEY = "your-super-secret-key-change-this-in-production"
+SECRET_KEY = os.getenv("SECRET_KEY", "default-fallback-secret-key")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
