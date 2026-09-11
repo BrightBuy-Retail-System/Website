@@ -30,6 +30,7 @@ function LoginPage() {
 
             localStorage.setItem("token", data.access_token);
             localStorage.setItem("user", JSON.stringify(data.user));
+            window.dispatchEvent(new Event("authChange"));
 
             alert("Login successful!");
             navigate("/");
@@ -50,6 +51,19 @@ function LoginPage() {
                 </header>
 
                 <main>
+                    {error && (
+                        <div className="auth-error-banner" style={{
+                            backgroundColor: '#fee2e2',
+                            color: '#b91c1c',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '8px',
+                            marginBottom: '1.25rem',
+                            fontSize: '0.9rem',
+                            border: '1px solid #fecaca'
+                        }}>
+                            ⚠️ {error}
+                        </div>
+                    )}
                     <form onSubmit={handlesubmit} className="auth-form">
                         {/* Email field */}
                         <div className="form-group">

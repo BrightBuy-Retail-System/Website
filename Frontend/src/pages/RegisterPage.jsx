@@ -28,12 +28,19 @@ function RegisterPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.detail || "Registration faild");
+                throw new Error(data.detail || "Registration failed");
             }
 
-            alert("Registration successful! Please login.");
-
-            navigate("/login");
+            if (data.access_token) {
+                localStorage.setItem("token", data.access_token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                window.dispatchEvent(new Event("authChange"));
+                alert("Registration successful! Welcome to your dashboard.");
+                navigate("/");
+            } else {
+                alert("Registration successful! Please login.");
+                navigate("/login");
+            }
 
         } catch (err) {
             setError(err.message);
@@ -51,6 +58,19 @@ function RegisterPage() {
                 </header>
 
                 <main>
+                    {error && (
+                        <div className="auth-error-banner" style={{
+                            backgroundColor: '#fee2e2',
+                            color: '#b91c1c',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '8px',
+                            marginBottom: '1.25rem',
+                            fontSize: '0.9rem',
+                            border: '1px solid #fecaca'
+                        }}>
+                            ⚠️ {error}
+                        </div>
+                    )}
                     <form onSubmit={handlesubmit} className="auth-form">
                         {/* Email field */}
                         <div className="form-group">

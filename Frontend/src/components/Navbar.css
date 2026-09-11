@@ -62,8 +62,14 @@
     border-radius: 2px;
 }
 
-/* Buttons */
+/* Buttons and Profile */
 .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.guest-actions {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -78,6 +84,7 @@
     color: #374151;
     border: 1px solid #d1d5db;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .btn-secondary:hover {
@@ -95,8 +102,52 @@
     background-color: #2563eb;
     border: 1px solid #2563eb;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .btn-primary:hover {
     background-color: #1d4ed8;
+}
+
+/* User Profile Badge in Navbar */
+.user-profile-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+    border-radius: 9999px;
+}
+
+.user-avatar-icon {
+    font-size: 1.1rem;
+}
+
+.user-email-tag {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-logout {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
 }
