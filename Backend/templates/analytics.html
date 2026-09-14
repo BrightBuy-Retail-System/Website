@@ -1,0 +1,214 @@
+{% extends "layout.html" %}
+
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics Dashboard{% endblock %}
+{% block page_subtitle %}Sales trends, revenue by city, and top products — Member 5{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <span class="ls-module-pill"><i class="bi bi-5-circle-fill"></i> Member 5</span>
+    <button class="ls-btn ls-btn-secondary" onclick="loadAll()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh All
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI Row -->
+<div class="row g-3 mb-4" id="analyticsKpiRow">
+    <div class="col-6 col-md-3">
+        <div class="ls-stat-card">
+            <div class="ls-stat-icon amber"><i class="bi bi-currency-dollar"></i></div>
+            <div>
+                <div class="ls-stat-value" id="a-total-revenue">—</div>
+                <div class="ls-stat-label">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="ls-stat-card">
+            <div class="ls-stat-icon green"><i class="bi bi-receipt-cutoff"></i></div>
+            <div>
+                <div class="ls-stat-value" id="a-total-orders">—</div>
+                <div class="ls-stat-label">Total Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="ls-stat-card">
+            <div class="ls-stat-icon indigo"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="ls-stat-value" id="a-total-customers">—</div>
+                <div class="ls-stat-label">Customers</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="ls-stat-card">
+            <div class="ls-stat-icon blue"><i class="bi bi-bag-check-fill"></i></div>
+            <div>
+                <div class="ls-stat-value" id="a-avg-order">—</div>
+                <div class="ls-stat-label">Avg Order Value</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tables Row -->
+<div class="row g-4 mb-4">
+
+    <!-- Top Products -->
+    <div class="col-lg-6">
+        <div class="ls-card h-100">
+            <div class="ls-card-header">
+                <span class="ls-card-title"><i class="bi bi-trophy-fill"></i> Top Products</span>
+                <span class="ls-badge ls-badge-warning">By Revenue</span>
+            </div>
+            <div class="ls-card-body p-0">
+                <table class="ls-table">
+                    <thead>
+                        <tr><th>#</th><th>Product</th><th>Units Sold</th><th>Revenue</th></tr>
+                    </thead>
+                    <tbody id="topProductsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue by City -->
+    <div class="col-lg-6">
+        <div class="ls-card h-100">
+            <div class="ls-card-header">
+                <span class="ls-card-title"><i class="bi bi-geo-alt-fill"></i> Revenue by City</span>
+                <span class="ls-badge ls-badge-info">Texas Cities</span>
+            </div>
+            <div class="ls-card-body p-0">
+                <table class="ls-table">
+                    <thead>
+                        <tr><th>City</th><th>Orders</th><th>Revenue</th><th>Share</th></tr>
+                    </thead>
+                    <tbody id="cityRevenueBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Order Trends -->
+<div class="ls-card">
+    <div class="ls-card-header">
+        <span class="ls-card-title"><i class="bi bi-graph-up-arrow"></i> Order Trends</span>
+        <span class="ls-badge ls-badge-success">Daily/Monthly</span>
+    </div>
+    <div class="ls-card-body p-0">
+        <table class="ls-table">
+            <thead>
+                <tr><th>Period</th><th>Orders</th><th>Revenue</th><th>Avg Order</th></tr>
+            </thead>
+            <tbody id="orderTrendsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', loadAll);
+
+async function loadAll() {
+    await Promise.allSettled([
+        loadSalesSummary(),
+        loadTopProducts(),
+        loadCityRevenue(),
+        loadOrderTrends(),
+    ]);
+}
+
+async function loadSalesSummary() {
+    try {
+        const data = await AnalyticsAPI.getSalesSummary();
+        const d = data.data || data;
+        document.getElementById('a-total-revenue').textContent   = fmtCurrency(d.total_revenue || d.revenue || 0);
+        document.getElementById('a-total-orders').textContent    = d.total_orders || d.orders || '—';
+        document.getElementById('a-total-customers').textContent = d.total_customers || d.customers || '—';
+        document.getElementById('a-avg-order').textContent       = fmtCurrency(d.avg_order_value || d.avg_order || 0);
+    } catch (err) {
+        ['a-total-revenue','a-total-orders','a-total-customers','a-avg-order'].forEach(id => {
+            document.getElementById(id).textContent = 'N/A';
+        });
+    }
+}
+
+async function loadTopProducts() {
+    showTableSkeleton('topProductsBody', 4);
+    try {
+        const data = await AnalyticsAPI.getTopProducts(10);
+        const items = data.data || data.products || [];
+        if (!items.length) { showTableEmpty('topProductsBody', 4, 'No product data'); return; }
+        document.getElementById('topProductsBody').innerHTML = items.map((p, i) => `
+            <tr>
+                <td>
+                    <span class="ls-badge ${i < 3 ? 'ls-badge-warning' : 'ls-badge-muted'}">${i+1}</span>
+                </td>
+                <td style="font-weight:600">${escHtml(p.product_name || p.name || '—')}</td>
+                <td>${p.total_quantity || p.units_sold || '—'}</td>
+                <td style="font-weight:700;color:var(--ls-primary)">${fmtCurrency(p.total_revenue || p.revenue || 0)}</td>
+            </tr>`).join('');
+    } catch (err) {
+        showTableEmpty('topProductsBody', 4, 'Error: ' + err.message);
+    }
+}
+
+async function loadCityRevenue() {
+    showTableSkeleton('cityRevenueBody', 4);
+    try {
+        const data = await AnalyticsAPI.getRevenueByCity();
+        const items = data.data || data.cities || [];
+        const totalRev = items.reduce((sum, c) => sum + (c.total_revenue || 0), 0);
+        if (!items.length) { showTableEmpty('cityRevenueBody', 4, 'No city data'); return; }
+        document.getElementById('cityRevenueBody').innerHTML = items.map(c => {
+            const share = totalRev > 0 ? ((c.total_revenue || 0) / totalRev * 100).toFixed(1) : '0.0';
+            return `<tr>
+                <td>
+                    <i class="bi bi-geo-alt-fill" style="color:var(--ls-primary);margin-right:6px;font-size:11px;"></i>
+                    <span style="font-weight:600">${escHtml(c.city_name || c.city || '—')}</span>
+                </td>
+                <td>${c.total_orders || c.orders || '—'}</td>
+                <td style="font-weight:700">${fmtCurrency(c.total_revenue || 0)}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;height:6px;background:var(--ls-bg-elevated);border-radius:3px;overflow:hidden;">
+                            <div style="width:${share}%;height:100%;background:var(--ls-primary);border-radius:3px;transition:width 0.5s;"></div>
+                        </div>
+                        <span style="font-size:11px;color:var(--ls-text-muted);min-width:36px">${share}%</span>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    } catch (err) {
+        showTableEmpty('cityRevenueBody', 4, 'Error: ' + err.message);
+    }
+}
+
+async function loadOrderTrends() {
+    showTableSkeleton('orderTrendsBody', 4);
+    try {
+        const data = await AnalyticsAPI.getOrderTrends();
+        const items = data.data || data.trends || [];
+        if (!items.length) { showTableEmpty('orderTrendsBody', 4, 'No trend data'); return; }
+        document.getElementById('orderTrendsBody').innerHTML = items.map(t => `
+            <tr>
+                <td>${escHtml(t.period || t.month || t.date || '—')}</td>
+                <td>${t.total_orders || t.orders || '—'}</td>
+                <td style="font-weight:600">${fmtCurrency(t.total_revenue || t.revenue || 0)}</td>
+                <td>${fmtCurrency(t.avg_order_value || t.avg_order || 0)}</td>
+            </tr>`).join('');
+    } catch (err) {
+        showTableEmpty('orderTrendsBody', 4, 'Error: ' + err.message);
+    }
+}
+</script>
+{% endblock %}

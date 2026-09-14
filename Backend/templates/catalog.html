@@ -1,0 +1,235 @@
+{% extends "layout.html" %}
+
+{% block title %}Catalog{% endblock %}
+{% block page_title %}Product Catalog{% endblock %}
+{% block page_subtitle %}Browse, search, and manage products & categories — Member 1{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex align-items-center gap-2">
+    <span class="ls-module-pill"><i class="bi bi-1-circle-fill"></i> Member 1</span>
+    <button class="ls-btn ls-btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal" id="btn-add-product">
+        <i class="bi bi-plus-lg"></i> Add Product
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filters Row -->
+<div class="ls-card mb-4">
+    <div class="ls-card-body d-flex flex-wrap gap-3 align-items-center" style="padding:14px 22px;">
+        <input type="text" id="searchInput" class="ls-form-control" placeholder="&#xF52A;  Search products..." style="max-width:240px;">
+        <select id="categoryFilter" class="ls-form-control" style="max-width:200px;">
+            <option value="">All Categories</option>
+        </select>
+        <select id="sortFilter" class="ls-form-control" style="max-width:180px;">
+            <option value="">Sort: Default</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+            <option value="stock_desc">Stock: High to Low</option>
+        </select>
+        <button class="ls-btn ls-btn-primary" id="btn-filter" onclick="loadProducts()">
+            <i class="bi bi-funnel-fill"></i> Filter
+        </button>
+        <span class="ms-auto" style="font-size:12px;color:var(--ls-text-muted)" id="productCount">—</span>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="ls-card">
+    <div class="ls-card-header">
+        <span class="ls-card-title"><i class="bi bi-box-seam-fill"></i> Products</span>
+        <button class="ls-btn ls-btn-secondary ls-btn-sm" onclick="loadProducts()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+    <div class="ls-card-body p-0">
+        <div style="overflow-x:auto;">
+            <table class="ls-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade ls-modal" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel"><i class="bi bi-plus-circle-fill text-warning me-2"></i>Add New Product</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label ls-form-label">Product Name *</label>
+                            <input type="text" id="pName" class="ls-form-control" placeholder="e.g. LoneStar Thermostat" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label ls-form-label">SKU *</label>
+                            <input type="text" id="pSku" class="ls-form-control" placeholder="TX-ELEC-001" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label ls-form-label">Category</label>
+                            <select id="pCategory" class="ls-form-control">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label ls-form-label">Price ($) *</label>
+                            <input type="number" id="pPrice" step="0.01" min="0" class="ls-form-control" placeholder="0.00" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label ls-form-label">Stock Qty</label>
+                            <input type="number" id="pStock" min="0" class="ls-form-control" placeholder="0">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label ls-form-label">Description</label>
+                            <textarea id="pDesc" class="ls-form-control" rows="2" placeholder="Product description..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label ls-form-label">Image URL</label>
+                            <input type="url" id="pImage" class="ls-form-control" placeholder="https://...">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="ls-btn ls-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="ls-btn ls-btn-primary" id="btn-save-product" onclick="saveProduct()">
+                    <i class="bi bi-check-lg"></i> Save Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadCategories();
+    await loadProducts();
+});
+
+async function loadCategories() {
+    try {
+        const data = await CatalogAPI.getCategories();
+        const opts = data.data.map(c => `<option value="${c.category_id}">${escHtml(c.name)}</option>`).join('');
+        document.getElementById('categoryFilter').innerHTML = '<option value="">All Categories</option>' + opts;
+        document.getElementById('pCategory').innerHTML = '<option value="">None</option>' + opts;
+    } catch (err) { showToast('Failed to load categories: ' + err.message, 'danger'); }
+}
+
+async function loadProducts() {
+    showTableSkeleton('productsTableBody', 8);
+    try {
+        const params = {
+            search:      document.getElementById('searchInput').value.trim() || undefined,
+            category_id: document.getElementById('categoryFilter').value || undefined,
+            sort:        document.getElementById('sortFilter').value || undefined,
+        };
+        const data = await CatalogAPI.getProducts(params);
+        document.getElementById('productCount').textContent = `${data.count} products`;
+        if (!data.data || data.data.length === 0) {
+            showTableEmpty('productsTableBody', 8, 'No products found');
+            return;
+        }
+        document.getElementById('productsTableBody').innerHTML = data.data.map(p => `
+            <tr>
+                <td style="color:var(--ls-text-muted)">#${p.product_id}</td>
+                <td>
+                    <div style="font-weight:600">${escHtml(p.name)}</div>
+                    ${p.description ? `<div style="font-size:11px;color:var(--ls-text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.description)}</div>` : ''}
+                </td>
+                <td><code style="font-size:11px;color:var(--ls-primary)">${escHtml(p.sku)}</code></td>
+                <td>${p.category_name ? escHtml(p.category_name) : '<span style="color:var(--ls-text-muted)">—</span>'}</td>
+                <td style="font-weight:600">${fmtCurrency(p.price)}</td>
+                <td>
+                    <span class="ls-badge ${p.stock_quantity > 10 ? 'ls-badge-success' : p.stock_quantity > 0 ? 'ls-badge-warning' : 'ls-badge-danger'}">
+                        ${p.stock_quantity}
+                    </span>
+                </td>
+                <td>
+                    <span class="ls-badge ${p.is_active ? 'ls-badge-success' : 'ls-badge-muted'}">
+                        ${p.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td>
+                    <button class="ls-btn ls-btn-danger ls-btn-sm ls-btn-icon" onclick="deleteProduct(${p.product_id}, '${escHtml(p.name)}')" title="Delete">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                </td>
+            </tr>`).join('');
+    } catch (err) {
+        showTableEmpty('productsTableBody', 8, 'Error loading products: ' + err.message);
+        showToast('Failed to load products: ' + err.message, 'danger');
+    }
+}
+
+async function saveProduct() {
+    const btn = document.getElementById('btn-save-product');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ls-spinner-sm"></span> Saving...';
+    try {
+        const body = {
+            name:           document.getElementById('pName').value.trim(),
+            sku:            document.getElementById('pSku').value.trim(),
+            category_id:    parseInt(document.getElementById('pCategory').value) || null,
+            price:          parseFloat(document.getElementById('pPrice').value),
+            stock_quantity: parseInt(document.getElementById('pStock').value) || 0,
+            description:    document.getElementById('pDesc').value.trim(),
+            image_url:      document.getElementById('pImage').value.trim(),
+        };
+        await CatalogAPI.createProduct(body);
+        bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+        showToast('Product created successfully!', 'success');
+        document.getElementById('addProductForm').reset();
+        await loadProducts();
+    } catch (err) {
+        showToast('Error: ' + err.message, 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Save Product';
+    }
+}
+
+async function deleteProduct(id, name) {
+    if (!confirm(`Delete product "${name}"? This cannot be undone.`)) return;
+    try {
+        await CatalogAPI.deleteProduct(id);
+        showToast(`Product "${name}" deleted.`, 'warning');
+        await loadProducts();
+    } catch (err) {
+        showToast('Delete failed: ' + err.message, 'danger');
+    }
+}
+
+// Enter key triggers filter
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') loadProducts();
+    });
+});
+</script>
+<style>
+.ls-form-label { font-size:12px; font-weight:600; color:var(--ls-text-muted); margin-bottom:5px; }
+</style>
+{% endblock %}

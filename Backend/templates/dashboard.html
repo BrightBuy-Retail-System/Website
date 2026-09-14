@@ -1,0 +1,312 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_title %}
+    <span>System Overview</span>
+{% endblock %}
+{% block page_subtitle %}LoneStar Texas Commerce — Phase 1 Foundation{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex align-items-center gap-2">
+    <span class="ls-module-pill"><i class="bi bi-star-fill"></i> Shared Foundation</span>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI STAT CARDS -->
+<div class="row g-3 mb-4" id="kpiRow">
+    <!-- Products -->
+    <div class="col-6 col-md-4 col-xl-2-4">
+        <div class="ls-stat-card" id="kpi-products">
+            <div class="ls-stat-icon amber"><i class="bi bi-box-seam-fill"></i></div>
+            <div>
+                <div class="ls-stat-value" id="kpi-product-count">—</div>
+                <div class="ls-stat-label">Products</div>
+            </div>
+        </div>
+    </div>
+    <!-- Customers -->
+    <div class="col-6 col-md-4 col-xl-2-4">
+        <div class="ls-stat-card" id="kpi-customers">
+            <div class="ls-stat-icon indigo"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="ls-stat-value" id="kpi-customer-count">—</div>
+                <div class="ls-stat-label">Customers</div>
+            </div>
+        </div>
+    </div>
+    <!-- Orders -->
+    <div class="col-6 col-md-4 col-xl-2-4">
+        <div class="ls-stat-card" id="kpi-orders">
+            <div class="ls-stat-icon green"><i class="bi bi-receipt-cutoff"></i></div>
+            <div>
+                <div class="ls-stat-value" id="kpi-order-count">—</div>
+                <div class="ls-stat-label">Orders</div>
+            </div>
+        </div>
+    </div>
+    <!-- Shipments -->
+    <div class="col-6 col-md-4 col-xl-2-4">
+        <div class="ls-stat-card" id="kpi-shipments">
+            <div class="ls-stat-icon blue"><i class="bi bi-truck-front-fill"></i></div>
+            <div>
+                <div class="ls-stat-value" id="kpi-shipment-count">—</div>
+                <div class="ls-stat-label">Shipments</div>
+            </div>
+        </div>
+    </div>
+    <!-- Revenue -->
+    <div class="col-6 col-md-4 col-xl-2-4">
+        <div class="ls-stat-card" id="kpi-revenue">
+            <div class="ls-stat-icon rose"><i class="bi bi-currency-dollar"></i></div>
+            <div>
+                <div class="ls-stat-value" id="kpi-revenue-val">—</div>
+                <div class="ls-stat-label">Revenue</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media (min-width:1200px) {
+    .col-xl-2-4 { flex: 0 0 20%; max-width: 20%; }
+}
+</style>
+
+<!-- MAIN GRID: Quick Access + Blueprint Status -->
+<div class="row g-4 mb-4">
+
+    <!-- Quick Access Modules -->
+    <div class="col-lg-7">
+        <div class="ls-card h-100">
+            <div class="ls-card-header">
+                <span class="ls-card-title"><i class="bi bi-grid-3x2-gap-fill"></i> Module Quick Access</span>
+                <span class="ls-badge ls-badge-info">5 Blueprints</span>
+            </div>
+            <div class="ls-card-body">
+                <div class="row g-3">
+
+                    <div class="col-6">
+                        <a href="/catalog" class="ls-module-card text-decoration-none d-block">
+                            <div class="ls-module-card-inner">
+                                <i class="bi bi-box-seam-fill fs-2 mb-2 text-warning"></i>
+                                <div class="fw-700 mb-1" style="color:var(--ls-text-primary)">Catalog</div>
+                                <div style="font-size:12px;color:var(--ls-text-muted)">Products & Categories</div>
+                                <span class="ls-nav-badge mt-2 d-inline-block">Member 1</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-6">
+                        <a href="/cart" class="ls-module-card text-decoration-none d-block">
+                            <div class="ls-module-card-inner">
+                                <i class="bi bi-cart4 fs-2 mb-2" style="color:#818cf8"></i>
+                                <div class="fw-700 mb-1" style="color:var(--ls-text-primary)">Auth & Cart</div>
+                                <div style="font-size:12px;color:var(--ls-text-muted)">Customers & Shopping</div>
+                                <span class="ls-nav-badge mt-2 d-inline-block">Member 2</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-6">
+                        <a href="/orders" class="ls-module-card text-decoration-none d-block">
+                            <div class="ls-module-card-inner">
+                                <i class="bi bi-receipt-cutoff fs-2 mb-2" style="color:#34d399"></i>
+                                <div class="fw-700 mb-1" style="color:var(--ls-text-primary)">Orders</div>
+                                <div style="font-size:12px;color:var(--ls-text-muted)">Order Management</div>
+                                <span class="ls-nav-badge mt-2 d-inline-block">Member 3</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-6">
+                        <a href="/logistics" class="ls-module-card text-decoration-none d-block">
+                            <div class="ls-module-card-inner">
+                                <i class="bi bi-truck-front-fill fs-2 mb-2" style="color:#60a5fa"></i>
+                                <div class="fw-700 mb-1" style="color:var(--ls-text-primary)">Logistics</div>
+                                <div style="font-size:12px;color:var(--ls-text-muted)">Shipment Tracking</div>
+                                <span class="ls-nav-badge mt-2 d-inline-block">Member 4</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-12">
+                        <a href="/analytics" class="ls-module-card ls-module-card-wide text-decoration-none d-block">
+                            <div class="ls-module-card-inner d-flex align-items-center gap-3">
+                                <i class="bi bi-bar-chart-line-fill fs-2" style="color:#fb7185"></i>
+                                <div>
+                                    <div class="fw-700" style="color:var(--ls-text-primary)">Analytics Dashboard</div>
+                                    <div style="font-size:12px;color:var(--ls-text-muted)">Sales trends, city breakdowns & top products</div>
+                                </div>
+                                <span class="ls-nav-badge ms-auto">Member 5</span>
+                            </div>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blueprint Status -->
+    <div class="col-lg-5">
+        <div class="ls-card h-100">
+            <div class="ls-card-header">
+                <span class="ls-card-title"><i class="bi bi-diagram-3-fill"></i> Blueprint Status</span>
+                <button class="ls-btn ls-btn-secondary ls-btn-sm" onclick="refreshHealth()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="ls-card-body p-0">
+                <table class="ls-table" id="blueprintTable">
+                    <thead>
+                        <tr>
+                            <th>Blueprint</th>
+                            <th>URL Prefix</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blueprintBody">
+                        <tr><td colspan="3"><div class="ls-skeleton" style="height:200px;margin:12px;"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Migration Files -->
+<div class="ls-card">
+    <div class="ls-card-header">
+        <span class="ls-card-title"><i class="bi bi-database-fill-gear"></i> Migration Files</span>
+        <span class="ls-badge ls-badge-success">6 Migrations</span>
+    </div>
+    <div class="ls-card-body p-0">
+        <table class="ls-table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Description</th>
+                    <th>Owner</th>
+                    <th>Tables</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code class="ls-code">00_init_texas_cities.sql</code></td>
+                    <td>TEXAS_CITY lookup table & seed data</td>
+                    <td><span class="ls-badge ls-badge-warning">Shared</span></td>
+                    <td>TEXAS_CITY</td>
+                </tr>
+                <tr>
+                    <td><code class="ls-code">01_catalog.sql</code></td>
+                    <td>Product catalog — categories & products</td>
+                    <td><span class="ls-badge ls-badge-info">Member 1</span></td>
+                    <td>CATEGORIES, PRODUCTS</td>
+                </tr>
+                <tr>
+                    <td><code class="ls-code">02_auth_cart.sql</code></td>
+                    <td>Customer auth & shopping cart</td>
+                    <td><span class="ls-badge ls-badge-info">Member 2</span></td>
+                    <td>CUSTOMER, CART, CART_ITEM</td>
+                </tr>
+                <tr>
+                    <td><code class="ls-code">03_orders.sql</code></td>
+                    <td>Order processing & order items</td>
+                    <td><span class="ls-badge ls-badge-info">Member 3</span></td>
+                    <td>ORDERS, ORDER_ITEMS</td>
+                </tr>
+                <tr>
+                    <td><code class="ls-code">04_logistics.sql</code></td>
+                    <td>Shipments & drivers</td>
+                    <td><span class="ls-badge ls-badge-info">Member 4</span></td>
+                    <td>DRIVERS, SHIPMENTS</td>
+                </tr>
+                <tr>
+                    <td><code class="ls-code">05_analytics.sql</code></td>
+                    <td>Reporting views</td>
+                    <td><span class="ls-badge ls-badge-info">Member 5</span></td>
+                    <td>Views / Aggregates</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.ls-module-card {
+    background: var(--ls-bg-elevated);
+    border: 1px solid var(--ls-border);
+    border-radius: var(--ls-radius-lg);
+    transition: all var(--ls-transition);
+}
+.ls-module-card:hover {
+    border-color: var(--ls-border-accent);
+    background: var(--ls-bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--ls-shadow-glow);
+}
+.ls-module-card-inner { padding: 18px; text-align: center; }
+.ls-module-card-wide .ls-module-card-inner { text-align: left; }
+.ls-code {
+    background: var(--ls-bg-base);
+    color: var(--ls-primary);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+}
+.fw-700 { font-weight: 700; }
+</style>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load KPI data
+    await loadKPIs();
+    // Load blueprint status
+    await loadBlueprintStatus();
+});
+
+async function loadKPIs() {
+    try {
+        const products = await CatalogAPI.getProducts();
+        document.getElementById('kpi-product-count').textContent = products.count ?? '—';
+    } catch { document.getElementById('kpi-product-count').textContent = '—'; }
+
+    // Placeholders for modules not yet connected
+    document.getElementById('kpi-customer-count').textContent = '—';
+    document.getElementById('kpi-order-count').textContent = '—';
+    document.getElementById('kpi-shipment-count').textContent = '—';
+    document.getElementById('kpi-revenue-val').textContent = '—';
+}
+
+async function loadBlueprintStatus() {
+    const tbody = document.getElementById('blueprintBody');
+    try {
+        const data = await apiGet(`${API_BASE}/api/health`);
+        const blueprints = data.blueprints || [];
+        const statusHtml = blueprints.map((bp, i) => {
+            const parts = bp.match(/^(.+?)\s+\((.+)\)$/);
+            const name   = parts ? parts[1] : bp;
+            const prefix = parts ? parts[2] : '—';
+            const colors = ['amber','indigo','green','blue','rose'];
+            const color  = colors[i] || 'info';
+            return `<tr>
+                <td><span class="ls-nav-badge">${name}</span></td>
+                <td><code class="ls-code">${prefix}</code></td>
+                <td><span class="ls-badge ls-badge-success"><i class="bi bi-check-circle-fill"></i> Online</span></td>
+            </tr>`;
+        }).join('');
+        tbody.innerHTML = statusHtml || `<tr><td colspan="3" class="text-center text-muted py-3">No blueprint data</td></tr>`;
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-3"><span class="ls-badge ls-badge-danger">DB Offline — ${escHtml(err.message)}</span></td></tr>`;
+    }
+}
+</script>
+{% endblock %}

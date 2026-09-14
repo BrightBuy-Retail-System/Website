@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+
+{% block title %}Orders{% endblock %}
+{% block page_title %}Order Management{% endblock %}
+{% block page_subtitle %}View, create, and manage customer orders — Member 3{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <span class="ls-module-pill"><i class="bi bi-3-circle-fill"></i> Member 3</span>
+    <button class="ls-btn ls-btn-primary" data-bs-toggle="modal" data-bs-target="#createOrderModal">
+        <i class="bi bi-plus-lg"></i> New Order
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filter Bar -->
+<div class="ls-card mb-4">
+    <div class="ls-card-body d-flex flex-wrap gap-3 align-items-center" style="padding:14px 22px;">
+        <input type="number" id="filterCustomerId" class="ls-form-control" placeholder="Customer ID" style="max-width:150px;" min="1">
+        <select id="filterStatus" class="ls-form-control" style="max-width:180px;">
+            <option value="">All Statuses</option>
+            <option>Pending</option>
+            <option>Processing</option>
+            <option>Shipped</option>
+            <option>Delivered</option>
+            <option>Cancelled</option>
+        </select>
+        <button class="ls-btn ls-btn-primary" onclick="loadOrders()"><i class="bi bi-funnel-fill"></i> Filter</button>
+        <button class="ls-btn ls-btn-secondary" onclick="clearFilters()"><i class="bi bi-x-lg"></i> Clear</button>
+        <span class="ms-auto" id="orderCount" style="font-size:12px;color:var(--ls-text-muted)"></span>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="ls-card">
+    <div class="ls-card-header">
+        <span class="ls-card-title"><i class="bi bi-receipt-cutoff"></i> Orders</span>
+        <button class="ls-btn ls-btn-secondary ls-btn-sm" onclick="loadOrders()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+    <div class="ls-card-body p-0">
+        <div style="overflow-x:auto;">
+            <table class="ls-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>City</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Create Order Modal -->
+<div class="modal fade ls-modal" id="createOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-receipt-cutoff text-warning me-2"></i>Create New Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="ls-form-label">Customer ID *</label>
+                    <input type="number" id="oCustomerId" class="ls-form-control" placeholder="e.g. 1" min="1" required>
+                </div>
+                <div class="mb-3">
+                    <label class="ls-form-label">Delivery City</label>
+                    <input type="text" id="oCity" class="ls-form-control" placeholder="Houston">
+                </div>
+                <div class="mb-3">
+                    <label class="ls-form-label">Delivery Address</label>
+                    <input type="text" id="oAddress" class="ls-form-control" placeholder="123 Main St">
+                </div>
+                <div class="mb-3">
+                    <label class="ls-form-label">Notes</label>
+                    <textarea id="oNotes" class="ls-form-control" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="ls-btn ls-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="ls-btn ls-btn-primary" id="btn-create-order" onclick="createOrder()">
+                    <i class="bi bi-check-lg"></i> Create Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const STATUS_BADGES = {
+    'Pending':    'ls-badge-warning',
+    'Processing': 'ls-badge-info',
+    'Shipped':    'ls-badge-info',
+    'Delivered':  'ls-badge-success',
+    'Cancelled':  'ls-badge-danger',
+};
+
+document.addEventListener('DOMContentLoaded', loadOrders);
+
+async function loadOrders() {
+    showTableSkeleton('ordersTableBody', 7);
+    try {
+        const params = {
+            customer_id: document.getElementById('filterCustomerId').value || undefined,
+            status:      document.getElementById('filterStatus').value || undefined,
+        };
+        const data = await OrdersAPI.getOrders(params);
+        const orders = data.data || data.orders || [];
+        document.getElementById('orderCount').textContent = `${orders.length} orders`;
+        if (!orders.length) { showTableEmpty('ordersTableBody', 7, 'No orders found'); return; }
+        document.getElementById('ordersTableBody').innerHTML = orders.map(o => `
+            <tr>
+                <td style="color:var(--ls-text-muted)">#${o.order_id}</td>
+                <td>${escHtml(o.customer_name || o.name || `ID ${o.customer_id}`)}</td>
+                <td>${escHtml(o.city_name || o.delivery_city || '—')}</td>
+                <td style="font-weight:600">${fmtCurrency(o.total_amount || o.total || 0)}</td>
+                <td><span class="ls-badge ${STATUS_BADGES[o.status] || 'ls-badge-muted'}">${escHtml(o.status || '—')}</span></td>
+                <td>${fmtDate(o.created_at || o.order_date)}</td>
+                <td>
+                    <button class="ls-btn ls-btn-secondary ls-btn-sm ls-btn-icon" onclick="viewOrder(${o.order_id})" title="View">
+                        <i class="bi bi-eye-fill"></i>
+                    </button>
+                </td>
+            </tr>`).join('');
+    } catch (err) {
+        showTableEmpty('ordersTableBody', 7, 'Error: ' + err.message);
+        showToast(err.message, 'danger');
+    }
+}
+
+async function createOrder() {
+    const btn = document.getElementById('btn-create-order');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ls-spinner-sm"></span> Creating...';
+    try {
+        const body = {
+            customer_id:      parseInt(document.getElementById('oCustomerId').value),
+            delivery_city:    document.getElementById('oCity').value.trim(),
+            delivery_address: document.getElementById('oAddress').value.trim(),
+            notes:            document.getElementById('oNotes').value.trim(),
+        };
+        await OrdersAPI.createOrder(body);
+        bootstrap.Modal.getInstance(document.getElementById('createOrderModal')).hide();
+        showToast('Order created successfully!', 'success');
+        await loadOrders();
+    } catch (err) { showToast('Error: ' + err.message, 'danger'); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-lg"></i> Create Order'; }
+}
+
+async function viewOrder(id) {
+    try {
+        const data = await OrdersAPI.getOrder(id);
+        const o = data.data || data;
+        alert(`Order #${o.order_id}\nStatus: ${o.status}\nTotal: ${fmtCurrency(o.total_amount || 0)}\nDate: ${fmtDate(o.created_at)}`);
+    } catch (err) { showToast(err.message, 'danger'); }
+}
+
+function clearFilters() {
+    document.getElementById('filterCustomerId').value = '';
+    document.getElementById('filterStatus').value = '';
+    loadOrders();
+}
+</script>
+<style>.ls-form-label { font-size:12px;font-weight:600;color:var(--ls-text-muted);margin-bottom:5px; }</style>
+{% endblock %}
